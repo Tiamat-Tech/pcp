@@ -1,0 +1,67 @@
+# This is an example .goreleaser.yml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod download
+    - go get mvdan.cc/gofumpt
+    - go get github.com/golang/mock/mockgen@v1.5.0
+    - go get google.golang.org/protobuf/cmd/protoc-gen-go
+    # you may remove this if you don't need go generate
+    - go generate gen.go
+builds:
+  - main: ./cmd/pcp/pcp.go
+    binary: pcp
+    ldflags: -s -w -X main.RawVersion={{.RawVersion}} -X main.ShortCommit={{.ShortCommit}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+#      - windows
+#      - freebsd
+#      - netbsd
+#      - openbsd
+#      - dragonfly
+    goarch:
+      - amd64
+#      - 386
+#      - arm
+#      - arm64
+    ignore:
+      - goos: darwin
+        goarch: 386
+    goarm:
+      - 7
+nfpms:
+  - formats:
+      - apk
+      - deb
+      - rpm
+    vendor: "dtrautwein.eu"
+    homepage: "https://github.com/dennis-tra/pcp"
+    maintainer: "Dennis Trautwein <pcp@dtrautwein.eu>"
+    description: "Command line peer-to-peer data transfer tool based on libp2p."
+    license: "Apache License Version 2.0"
+    file_name_template: "{{.ProjectName}}_{{.RawVersion}}_{{.Os}}-{{.Arch}}"
+    replacements:
+      darwin: macos
+archives:
+  - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "{{.ProjectName}}_{{.RawVersion}}_{{.Os}}-{{.Arch}}"
+    replacements:
+      darwin: macos
+checksum:
+  name_template: 'checksums.txt'
+changelog:
+  sort: asc
+brews:
+  - tap:
+      owner: dennis-tra
+      name: homebrew-tap
+    description: "pcp is a command line peer-to-peer data transfer tool based on libp2p"
+    homepage: "https://github.com/dennis-tra/pcp"
+    license: "Apache License Version 2.0"
